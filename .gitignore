@@ -1,0 +1,16 @@
+# LiteX build artifacts
+build/
+*.vcd
+*.fst
+*.gtkw
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv-osx/
+.venv-linux/
+
+# For litex
+deps/
+!deps/litex

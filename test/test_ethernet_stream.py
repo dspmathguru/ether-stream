@@ -7,12 +7,12 @@ async def test_high_perf_raw_ethernet(dut):
     """Basic test for HighPerfRawEthernetStreamer"""
 
     # Use sys_clk (what Migen actually generated)
-    clock = Clock(dut.sys_clk, 6.4, units="ns")
+    clock = Clock(dut.sys_clk, 6.4, unit="ns")
     cocotb.start_soon(clock.start())
 
     # Reset
     dut.sys_rst.value = 1
-    await Timer(200, units="ns")
+    await Timer(200, unit="ns")
     dut.sys_rst.value = 0
     await RisingEdge(dut.sys_clk)
 

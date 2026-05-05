@@ -4,13 +4,9 @@ from litex.soc.interconnect.csr import AutoCSR, CSRStatus, CSRStorage
 
 class HighPerfRawEthernetStreamer(Module, AutoCSR):
     def __init__(self, data_width=256):
+        # These will become top-level ports
         self.clk = Signal()
         self.rst = Signal()
-
-        # Correct way to create the clock domain
-        self.clock_domains.cd_sys = ClockDomain()
-        self.cd_sys.clk = self.clk
-        self.cd_sys.rst = self.rst
 
         self.sink   = Endpoint([("data", data_width)])
         self.source = Endpoint([("data", data_width)])
@@ -32,6 +28,7 @@ class HighPerfRawEthernetStreamer(Module, AutoCSR):
             self.sink.ready.eq(self.source.ready),
         ]
 
+        # Use normal self.sync (Migen will use the default sys clock domain)
         self.sync += [
             If(self.rst,
                 seq.eq(0),

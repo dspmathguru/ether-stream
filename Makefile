@@ -7,9 +7,10 @@ endif
 
 PYTHON := $(VENV_DIR)/bin/python
 PIP    := $(VENV_DIR)/bin/pip
+COCOTB_DIR := test
 
 # =============================================================================
-# One-time setup (run this after clone or when dependencies change)
+# One-time setup
 # =============================================================================
 submodules:
 	git submodule update --init --recursive
@@ -20,38 +21,40 @@ $(VENV_DIR):
 init: $(VENV_DIR) submodules
 	@echo ">>> Upgrading pip..."
 	$(PIP) install --upgrade pip
-	@echo ">>> Installing project requirements..."
+	@echo ">>> Installing requirements..."
 	$(PIP) install -r requirements.txt
 	@echo ">>> Setting up LiteX..."
 	cd deps/litex && ./litex_setup.py --init --install
-	@echo ">>> Done. You can now use 'make test'."
+	@echo ">>> Done."
 
 # =============================================================================
-# Fast test target (does NOT run init)
+# Fast targets (do NOT re-run init)
 # =============================================================================
 test:
 	@if [ ! -d "$(VENV_DIR)" ]; then \
-		echo "Error: Virtual environment not found."; \
-		echo "Please run 'make init' first (only needed once)."; \
-		exit 1; \
+		echo "Error: Run 'make init' first"; exit 1; \
 	fi
-	@echo ">>> Running protocol simulation..."
 	$(PYTHON) test/test_protocol.py
 
 test-vcd: test
-	@echo ">>> Opening waveform..."
-	@which gtkwave >/dev/null && gtkwave protocol.vcd || \
-	 which surfer  >/dev/null && surfer  protocol.vcd || \
-	 echo "Install gtkwave or surfer to view the waveform."
+	@if command -v surfer >/dev/null; then surfer protocol.vcd; \
+	elif command -v gtkwave >/dev/null; then gtkwave protocol.vcd; \
+	else echo "Install surfer or gtkwave"; fi
 
-# =============================================================================
-# Other targets
-# =============================================================================
-local:
-	jupyter-lab --ip 0.0.0.0
+# cocotb target - does NOT depend on init
+cocotb:
+	@if [ ! -d "$(VENV_DIR)" ]; then \
+		echo "Error: Virtualenv not found. Run 'make init' first."; \
+		exit 1; \
+	fi
+	@echo ">>> Running cocotb + Verilator test..."
+	cd $(COCOTB_DIR) && $(MAKE)
+
+cocotb-clean:
+	cd $(COCOTB_DIR) && $(MAKE) clean
 
 clean:
-	rm -rf build/ __pycache__/ *.vcd *.fst
+	rm -rf build/ __pycache__/ *.vcd *.fst sim_build/ results.xml
 
-.PHONY: init submodules test test-vcd local clean
+.PHONY: init submodules test test-vcd cocotb cocotb-clean clean
 

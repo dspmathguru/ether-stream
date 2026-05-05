@@ -57,3 +57,47 @@ class MyLightweightProtocol(Module, AutoCSR):
                 self.tx_packets.status.eq(self.tx_packets.status + 1)
             )
         ]
+
+class HighPerfRawEthernetStreamer(Module, AutoCSR):
+    def __init__(self, data_width=256):
+        # Incoming data stream (from your 2D array source / DMA / etc.)
+        self.sink = Endpoint([("data", data_width)])
+
+        # Outgoing stream to Ethernet MAC
+        self.source = Endpoint([("data", data_width)])
+
+        # Control interface
+        self.start       = Signal()
+        self.total_bytes = Signal(32)
+        self.done        = Signal()
+
+        # Internal state
+        seq    = Signal(32)
+        offset = Signal(32)
+
+        # Header = seq(4) + total_bytes(4) + offset(4) + flags(4)
+        # flags[0] = last chunk
+        header = Cat(seq, self.total_bytes, offset, C(0, 32))
+
+        self.comb += [
+            self.source.valid.eq(self.sink.valid),
+            self.source.last.eq(self.sink.last),
+            # Insert 16-byte header at the beginning of each frame
+            self.source.data.eq(Cat(header, self.sink.data[128:])),
+            self.sink.ready.eq(self.source.ready),
+        ]
+
+        self.sync += [
+            If(self.start,
+                seq.eq(0),
+                offset.eq(0),
+                self.done.eq(0)
+            ),
+            If(self.sink.valid & self.sink.ready & self.sink.last,
+                seq.eq(seq + 1),
+                offset.eq(offset + (data_width // 8)),
+                If(offset + (data_width // 8) >= self.total_bytes,
+                    self.done.eq(1)
+                )
+            )
+        ]

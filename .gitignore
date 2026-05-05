@@ -14,3 +14,37 @@ __pycache__/
 # For litex
 deps/
 !deps/litex
+
+# === Build artifacts ===
+build/
+test/sim_build/
+test/results.xml
+*.vcd
+*.fst
+*.gtkw
+
+# === Python ===
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+
+# === Virtual environments ===
+.venv-linux/
+.venv-osx/
+venv/
+.env
+
+# === LiteX dependencies (cloned by litex_setup.py) ===
+deps/*
+!deps/litex/
+
+# === OS / Editor files ===
+.DS_Store
+*.swp
+*.swo
+*~
+
+# === cocotb / simulation ===
+results.xml
+sim_build/

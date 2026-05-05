@@ -14,5 +14,8 @@ if [[ "$OSTYPE" == "linux-gnu"* ]]; then
 elif [[ "$OSTYPE" == "darwin"* ]]; then
     echo "[ether-stream] macOS detected"
     source "$PROJECT_ROOT/.venv-osx/bin/activate"
+
+    # Make sure python3.13 is preferred
+    export PATH="/opt/homebrew/opt/python@3.13/bin:$PATH"
 fi
 

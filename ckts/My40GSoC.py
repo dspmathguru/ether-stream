@@ -11,7 +11,7 @@ class My40GSoC(SoC):
         self.submodules.eth = LiteEth(phy=self.eth_phy, mac_address=0x123456789abc)
 
         # Your lightweight protocol
-        self.submodules.protocol = MyLightweightProtocol(data_width=256)
+        self.submodules.protocol = HighPerfRawEthernetStreamer(data_width=256)
 
         # Connect streams
         self.comb += [
